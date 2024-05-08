@@ -1,0 +1,30 @@
+void MainWindow::mousePressEvent(QMouseEvent * e) //鼠标按下事件
+{
+    //求鼠标点击处的棋子点pt
+    QPoint pt;
+    int x=e->pos().x() ;
+    int y=e->pos().y();
+    
+
+    //判定鼠标的位置更接近哪一个座标点, 将该座标点作为要下棋子的点
+    if (x%RECT_WIDTH<=RECT_WIDTH/2)
+
+         pt.setX( x / RECT_WIDTH-1);
+    else
+        pt.setX( x / RECT_WIDTH);
+
+    if (y%RECT_HEIGHT<=RECT_HEIGHT/2)
+
+         pt.setY( y / RECT_HEIGHT-1);
+    else
+        pt.setY( y / RECT_HEIGHT);
+
+    //qDebug()<<"x="<<x<<","<<"x%Rect_Width="<<x%RECT_WIDTH<<",pt.x="<<pt.x();
+    //qDebug()<<"y="<<y<<","<<"y%Rect_height="<<x%RECT_HEIGHT<<",pt.y="<<pt.y();
+
+
+    //构造一个棋子,并添加到已下棋子容器中
+    SignalChess signalchess(pt,mIsBlackTurn);
+    mPlayedChess.append(signalchess);
+
+}
