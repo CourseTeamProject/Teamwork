@@ -18,3 +18,36 @@ void MainWindow::DrawChessboard()
         }
     }
 }
+void MainWindow::DrawChessWithMouse() //将要下的棋子,跟着鼠标移动
+{
+    QPainter painter(this);
+    painter.setPen(QPen(QColor(Qt::transparent)));
+
+    if (mIsBlackTurn)
+    {
+        painter.setBrush(Qt::black);
+    }
+    else
+    {
+        painter.setBrush(Qt::white);
+    }
+
+    //mapFromGlobal, 转换座标为相对座标
+    QPoint cPoint(mapFromGlobal(QCursor::pos()));
+    //只有在棋盘区域,才绘制圆跟随鼠标
+    //qDebug()<<"cPoint.x()="<<cPoint.x()/RECT_WIDTH<<"cPoint.y()"<<cPoint.y()/RECT_WIDTH;
+
+    if (! (cPoint.x()/RECT_WIDTH<1 || cPoint.x()/RECT_WIDTH>CHESS_COLUMES || cPoint.y()/RECT_HEIGHT<1 || cPoint.y()/RECT_HEIGHT>CHESS_ROWS))
+
+       painter.drawEllipse(cPoint,RECT_WIDTH / 3,RECT_HEIGHT / 3);
+
+}
+
+for (int i = 0; i<mPlayedChess.size(); i++) //遍历已下棋子的座标
+    {
+        SignalChess signalchess = mPlayedChess[i];
+        if (signalchess.mChessPossition == pt) //判定是否已存在棋子,若是,则放弃本次鼠标事件
+        {
+            return;
+        }
+    }
