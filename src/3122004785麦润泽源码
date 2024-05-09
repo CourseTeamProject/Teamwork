@@ -27,4 +27,7 @@ void MainWindow::mousePressEvent(QMouseEvent * e) //鼠标按下事件
     SignalChess signalchess(pt,mIsBlackTurn);
     mPlayedChess.append(signalchess);
 
+    //换另一方下棋了
+    mIsBlackTurn = !mIsBlackTurn;
+
 }
