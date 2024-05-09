@@ -26,6 +26,8 @@ private slots:
 
     void on_ListenBtn_clicked();
 
+    void on_sendBtn_clicked();
+
 private:
     Ui::Widget *ui;
 

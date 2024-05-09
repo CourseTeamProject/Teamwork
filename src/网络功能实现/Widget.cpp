@@ -83,3 +83,8 @@ void Widget::on_ListenBtn_clicked()
     }
 
 }
+
+void Widget::on_sendBtn_clicked()
+{
+    mSocket->write(ui->messageEdit->text().toUtf8());
+}

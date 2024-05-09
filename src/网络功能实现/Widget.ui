@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>885</width>
+    <height>829</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,7 +36,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>110</x>
@@ -60,6 +60,38 @@
      <widget class="QPushButton" name="ListenBtn">
       <property name="text">
        <string>监听客户端连接</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QTextEdit" name="messageText">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>400</y>
+     <width>591</width>
+     <height>201</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>630</y>
+     <width>591</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <widget class="QLineEdit" name="messageEdit"/>
+    </item>
+    <item>
+     <widget class="QPushButton" name="sendBtn">
+      <property name="text">
+       <string>发送</string>
       </property>
      </widget>
     </item>
