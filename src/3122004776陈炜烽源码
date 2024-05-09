@@ -26,3 +26,14 @@ public:
 };
 
 #endif // SIGNALCHESS_H
+
+#5月8号
+#自动播放背景音乐
+ //添加音乐播放
+    QMediaPlayer *player = new QMediaPlayer(this);
+    player->setMedia(QUrl("qrc:/GEM.wav")); // 将路径替换为音乐文件的资源路径
+    player->setVolume(50); // 设置音量（可选）
+
+
+    //播放音乐
+    player->play();
