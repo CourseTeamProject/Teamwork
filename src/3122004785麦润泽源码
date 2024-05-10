@@ -26,8 +26,58 @@ void MainWindow::mousePressEvent(QMouseEvent * e) //鼠标按下事件
     //构造一个棋子,并添加到已下棋子容器中
     SignalChess signalchess(pt,mIsBlackTurn);
     mPlayedChess.append(signalchess);
-
+ //统计4个方向是否五子连
+    int nLeft =            CountNearChess(signalchess,QPoint(-1,0));
+    int nLeftUp =        CountNearChess(signalchess,QPoint(-1,-1));
+    int nUp =            CountNearChess(signalchess,QPoint(0,-1));
+    int nRightUp =        CountNearChess(signalchess,QPoint(1,-1));
+    int nRight =        CountNearChess(signalchess,QPoint(1,0));
+    int nRightDown =    CountNearChess(signalchess,QPoint(1,1));
+    int nDown =            CountNearChess(signalchess,QPoint(0,1));
+    int nLeftDown =        CountNearChess(signalchess,QPoint(-1,1));
+    if ( (nLeft + nRight) >= 4 ||
+         (nLeftUp + nRightDown) >= 4 ||
+         (nUp + nDown) >= 4 ||
+         (nRightUp + nLeftDown) >= 4 )
+    {
+        QString str = mIsBlackTurn?"Black Win":"White Win";
+        QMessageBox::information(NULL,  "GAME OVER",str, QMessageBox::Yes , QMessageBox::Yes);
+        mPlayedChess.clear();
+        //NewGame();
+        return;
+    }
     //换另一方下棋了
     mIsBlackTurn = !mIsBlackTurn;
 
 }
+
+int MainWindow::CountNearChess(SignalChess signalchess,QPoint ptDirection)
+{
+    int nCount = 0; //记录相连棋子个数
+    SignalChess item=signalchess;
+    item.mChessPossition += ptDirection;//产生待判定的座标
+
+    while (mPlayedChess.contains(item)) //循环确认待判定的座标,item 和signalchess 只是座标位置不同,颜色相同
+    {
+        nCount++;
+        item.mChessPossition += ptDirection; //产生下一个待判定的座标.
+    }
+    return nCount; //返回相连棋子个数
+}
+
+void MainWindow::StopGame() //停止棋局
+{
+    mPlayedChess.clear();  //清除已下棋子的容器
+}
+
+void MainWindow::RepentanceGame() //悔棋
+{
+    if (!mPlayedChess.empty())
+    {
+        mPlayedChess.pop_back(); //移除最后一个棋子
+        mIsBlackTurn = !mIsBlackTurn; //变回上一个该下的棋子
+    }
+    else
+      return;
+}
+
