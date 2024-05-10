@@ -1,7 +1,45 @@
-#define CHESS_ROWS        15  //棋盘水平方向格子数
-#define CHESS_COLUMES    15  //棋盘垂直方向格子数
-#define RECT_WIDTH        50  //每个格子的宽
-#define RECT_HEIGHT        50  //每个格式的高
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include <QMessageBox>
+#include <QRadialGradient>
+#include <QColor>
+#include <QMouseEvent>
+#include <QDebug>
+#include <QAction>
+
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    //设置窗口大小,并固定
+    resize((CHESS_COLUMES + 2)*RECT_WIDTH  ,(CHESS_ROWS + 2)*RECT_HEIGHT);
+    setMaximumSize((CHESS_COLUMES + 2)*RECT_WIDTH  ,(CHESS_ROWS + 2)*RECT_HEIGHT);
+    setMinimumSize((CHESS_COLUMES + 2)*RECT_WIDTH  ,(CHESS_ROWS + 2)*RECT_HEIGHT);
+    //黑子先下
+    mIsBlackTurn = true;
+
+    //产生工具栏按扭
+    QAction *action_S=new QAction(tr("结束(&S)"),this);
+    connect(action_S,&QAction::triggered,this,&MainWindow::StopGame);
+    ui->toolBar->addAction(action_S);
+
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::paintEvent(QPaintEvent *e)
+{
+    DrawChessboard();        //画棋盘
+    DrawChesses();            //画棋子
+    DrawChessWithMouse();    //画鼠标（当前方的棋子形状）
+
+    update();
+}
 
 void MainWindow::DrawChessboard()
 {
@@ -18,6 +56,54 @@ void MainWindow::DrawChessboard()
         }
     }
 }
+
+void MainWindow::DrawChesses()
+{
+    QPainter painter(this);
+    painter.setPen(QPen(QColor(Qt::transparent))); //透明黑色,same as QColor(0, 0, 0, 0)
+
+    for (int i = 0; i<mPlayedChess.size(); i++) //遍历每一个已下的棋子
+    {
+        SignalChess signalchess = mPlayedChess[i];
+
+        //每个已下棋子中心点座标和渐变填冲焦点座标
+        QPoint ptcentor((signalchess.mChessPossition.x()+1)*RECT_WIDTH,(signalchess.mChessPossition.y()+1)*RECT_HEIGHT);
+        QPoint ptfocal((signalchess.mChessPossition.x()+1)*RECT_WIDTH,(signalchess.mChessPossition.y()+1)*RECT_HEIGHT);
+        //定义渐变填冲
+        QRadialGradient radialGradient(ptcentor,RECT_WIDTH/3,ptfocal);
+
+        if (signalchess.mChessColor)
+        {
+            //painter.setBrush(Qt::black);
+
+            //如果是黑子,定义黑色渐变
+            radialGradient.setColorAt(0,QColor(0,0,0));
+            radialGradient.setColorAt(1,QColor(0,0,0));
+        }
+        else
+        {
+            //painter.setBrush(Qt::white);
+            //如果是白子,定义白色渐变
+            radialGradient.setColorAt(0,QColor(255,255,255,255));
+            radialGradient.setColorAt(1,QColor(180,180,180,255));
+        }
+
+
+        painter.setBrush(radialGradient);//定义渐变填冲
+
+        DrawChessAtPoint(painter,ptcentor); //以ptcentor 为中心画出棋子
+    }
+}
+
+void MainWindow::DrawChessAtPoint(QPainter& painter,QPoint& pt)  //以pt 为中心画出1/3 棋盘方块宽度为半径的圆
+{
+    //painter.drawRect( (pt.x()+0.5)*RECT_WIDTH,(pt.y()+0.5)*RECT_HEIGHT,RECT_WIDTH,RECT_HEIGHT);
+
+    //QPoint ptCenter((pt.x()+0.5)*RECT_WIDTH,(pt.y()+0.5)*RECT_HEIGHT);
+    painter.drawEllipse(pt,RECT_WIDTH / 3,RECT_HEIGHT / 3);
+}
+
+
 void MainWindow::DrawChessWithMouse() //将要下的棋子,跟着鼠标移动
 {
     QPainter painter(this);
@@ -43,7 +129,35 @@ void MainWindow::DrawChessWithMouse() //将要下的棋子,跟着鼠标移动
 
 }
 
-for (int i = 0; i<mPlayedChess.size(); i++) //遍历已下棋子的座标
+void MainWindow::mousePressEvent(QMouseEvent * e) //鼠标按下事件
+{
+    //求鼠标点击处的棋子点pt
+    QPoint pt;
+    int x=e->pos().x() ;
+    int y=e->pos().y();
+    //如果鼠标不是在棋盘区域按下,则放弃此鼠标按压事件
+    if ((x/RECT_WIDTH<1 || x/RECT_WIDTH>CHESS_COLUMES || y/RECT_HEIGHT<1 || y/RECT_HEIGHT>CHESS_ROWS))
+        return;
+
+    //判定鼠标的位置更接近哪一个座标点, 将该座标点作为要下棋子的点
+    if (x%RECT_WIDTH<=RECT_WIDTH/2)
+
+         pt.setX( x / RECT_WIDTH-1);
+    else
+        pt.setX( x / RECT_WIDTH);
+
+    if (y%RECT_HEIGHT<=RECT_HEIGHT/2)
+
+         pt.setY( y / RECT_HEIGHT-1);
+    else
+        pt.setY( y / RECT_HEIGHT);
+
+    //qDebug()<<"x="<<x<<","<<"x%Rect_Width="<<x%RECT_WIDTH<<",pt.x="<<pt.x();
+    //qDebug()<<"y="<<y<<","<<"y%Rect_height="<<x%RECT_HEIGHT<<",pt.y="<<pt.y();
+
+
+    //如果已存在棋子，就什么也不做
+    for (int i = 0; i<mPlayedChess.size(); i++) //遍历已下棋子的座标
     {
         SignalChess signalchess = mPlayedChess[i];
         if (signalchess.mChessPossition == pt) //判定是否已存在棋子,若是,则放弃本次鼠标事件
@@ -51,3 +165,51 @@ for (int i = 0; i<mPlayedChess.size(); i++) //遍历已下棋子的座标
             return;
         }
     }
+    //不存在棋子，则构造一个棋子,并添加到已下棋子容器中
+    SignalChess signalchess(pt,mIsBlackTurn);
+    mPlayedChess.append(signalchess);
+
+    //统计4个方向是否五子连
+    int nLeft =            CountNearChess(signalchess,QPoint(-1,0));
+    int nLeftUp =        CountNearChess(signalchess,QPoint(-1,-1));
+    int nUp =            CountNearChess(signalchess,QPoint(0,-1));
+    int nRightUp =        CountNearChess(signalchess,QPoint(1,-1));
+    int nRight =        CountNearChess(signalchess,QPoint(1,0));
+    int nRightDown =    CountNearChess(signalchess,QPoint(1,1));
+    int nDown =            CountNearChess(signalchess,QPoint(0,1));
+    int nLeftDown =        CountNearChess(signalchess,QPoint(-1,1));
+    if ( (nLeft + nRight) >= 4 ||
+         (nLeftUp + nRightDown) >= 4 ||
+         (nUp + nDown) >= 4 ||
+         (nRightUp + nLeftDown) >= 4 )
+    {
+        QString str = mIsBlackTurn?"Black Win":"White Win";
+        QMessageBox::information(NULL,  "GAME OVER",str, QMessageBox::Yes , QMessageBox::Yes);
+        mPlayedChess.clear();
+        //NewGame();
+        return;
+    }
+    //换另一方下棋了
+    mIsBlackTurn = !mIsBlackTurn;
+}
+
+
+int MainWindow::CountNearChess(SignalChess signalchess,QPoint ptDirection)
+{
+    int nCount = 0; //记录相连棋子个数
+    SignalChess item=signalchess;
+    item.mChessPossition += ptDirection;//产生待判定的座标
+
+    while (mPlayedChess.contains(item)) //循环确认待判定的座标,item 和signalchess 只是座标位置不同,颜色相同
+    {
+        nCount++;
+        item.mChessPossition += ptDirection; //产生下一个待判定的座标.
+    }
+    return nCount; //返回相连棋子个数
+}
+
+void MainWindow::StopGame() //停止棋局
+{
+    mPlayedChess.clear();  //清除已下棋子的容器
+}
+
