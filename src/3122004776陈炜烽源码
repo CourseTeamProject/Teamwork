@@ -37,3 +37,16 @@ public:
 
     //播放音乐
     player->play();
+#5月9号
+#实现自动循环播放背景音乐
+    //添加音乐播放
+    QMediaPlaylist *musicList = new QMediaPlaylist(this);  //添加音乐列表
+    musicList->addMedia(QUrl("qrc:/music.wav")) ; //添加音乐列表
+    QMediaPlayer *player = new QMediaPlayer(this);
+    player->setPlaylist(musicList);  //设置音乐列表
+    player->setVolume(10); // 设置音量（可选）
+
+    //播放音乐
+    player->play();
+    musicList->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);  //循环播放
+    //这样就可以单首音乐循环播放
