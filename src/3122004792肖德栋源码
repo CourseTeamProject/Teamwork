@@ -212,4 +212,13 @@ void MainWindow::StopGame() //停止棋局
 {
     mPlayedChess.clear();  //清除已下棋子的容器
 }
-
+void MainWindow::RepentanceGame() //悔棋
+{
+    if (!mPlayedChess.empty())
+    {
+        mPlayedChess.pop_back(); //移除最后一个棋子
+        mIsBlackTurn = !mIsBlackTurn; //变回上一个该下的棋子
+    }
+    else
+      return;
+}
