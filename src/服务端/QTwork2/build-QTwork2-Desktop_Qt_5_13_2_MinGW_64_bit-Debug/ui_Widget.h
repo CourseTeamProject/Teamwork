@@ -31,10 +31,13 @@ public:
     QLineEdit *lineEdit;
     QPushButton *ListenBtn;
     QTextEdit *messageText;
-    QWidget *widget;
+    QWidget *layoutWidget1;
     QHBoxLayout *horizontalLayout_2;
     QLineEdit *messageEdit;
     QPushButton *sendBtn;
+    QPushButton *peopleBtn;
+    QPushButton *GameBtn;
+    QPushButton *RoundBtn;
 
     void setupUi(QWidget *Widget)
     {
@@ -71,22 +74,31 @@ public:
         messageText = new QTextEdit(Widget);
         messageText->setObjectName(QString::fromUtf8("messageText"));
         messageText->setGeometry(QRect(110, 400, 591, 201));
-        widget = new QWidget(Widget);
-        widget->setObjectName(QString::fromUtf8("widget"));
-        widget->setGeometry(QRect(110, 630, 591, 36));
-        horizontalLayout_2 = new QHBoxLayout(widget);
+        layoutWidget1 = new QWidget(Widget);
+        layoutWidget1->setObjectName(QString::fromUtf8("layoutWidget1"));
+        layoutWidget1->setGeometry(QRect(110, 630, 591, 36));
+        horizontalLayout_2 = new QHBoxLayout(layoutWidget1);
         horizontalLayout_2->setObjectName(QString::fromUtf8("horizontalLayout_2"));
         horizontalLayout_2->setContentsMargins(0, 0, 0, 0);
-        messageEdit = new QLineEdit(widget);
+        messageEdit = new QLineEdit(layoutWidget1);
         messageEdit->setObjectName(QString::fromUtf8("messageEdit"));
 
         horizontalLayout_2->addWidget(messageEdit);
 
-        sendBtn = new QPushButton(widget);
+        sendBtn = new QPushButton(layoutWidget1);
         sendBtn->setObjectName(QString::fromUtf8("sendBtn"));
 
         horizontalLayout_2->addWidget(sendBtn);
 
+        peopleBtn = new QPushButton(Widget);
+        peopleBtn->setObjectName(QString::fromUtf8("peopleBtn"));
+        peopleBtn->setGeometry(QRect(110, 700, 112, 34));
+        GameBtn = new QPushButton(Widget);
+        GameBtn->setObjectName(QString::fromUtf8("GameBtn"));
+        GameBtn->setGeometry(QRect(250, 700, 112, 34));
+        RoundBtn = new QPushButton(Widget);
+        RoundBtn->setObjectName(QString::fromUtf8("RoundBtn"));
+        RoundBtn->setGeometry(QRect(390, 700, 112, 34));
 
         retranslateUi(Widget);
 
@@ -100,6 +112,9 @@ public:
         label->setText(QCoreApplication::translate("Widget", "\347\253\257\345\217\243\345\217\267\357\274\232", nullptr));
         ListenBtn->setText(QCoreApplication::translate("Widget", "\347\233\221\345\220\254\345\256\242\346\210\267\347\253\257\350\277\236\346\216\245", nullptr));
         sendBtn->setText(QCoreApplication::translate("Widget", "\345\217\221\351\200\201", nullptr));
+        peopleBtn->setText(QCoreApplication::translate("Widget", "\345\217\221\351\200\201\344\272\272\346\225\260", nullptr));
+        GameBtn->setText(QCoreApplication::translate("Widget", "\345\274\200\345\247\213\346\270\270\346\210\217", nullptr));
+        RoundBtn->setText(QCoreApplication::translate("Widget", "\346\243\200\346\237\245\345\233\236\345\220\210", nullptr));
     } // retranslateUi
 
 };
