@@ -50,3 +50,27 @@ public:
     player->play();
     musicList->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);  //循环播放
     //这样就可以单首音乐循环播放
+#5月10号
+#实现和棋功能
+// 判断是否和棋
+        if (IsDraw())
+        {
+            DeclareDraw();
+        }
+bool MainWindow::IsDraw() const
+{
+    // 判断是否还有空位置可下
+    if (mPlayedChess.size() >= (CHESS_COLUMES+1) * (CHESS_ROWS+1))
+        return true;
+
+    // TODO: 还可以添加其他判断和棋的条件，如局面重复等
+    // 这里只实现了棋盘满格的情况判断
+
+    return false;
+}
+
+void MainWindow::DeclareDraw()
+{
+    QMessageBox::information(NULL, "GAME OVER", "和局", QMessageBox::Yes, QMessageBox::Yes);
+    mPlayedChess.clear();
+}
