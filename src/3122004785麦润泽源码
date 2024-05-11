@@ -81,3 +81,17 @@ void MainWindow::RepentanceGame() //悔棋
       return;
 }
 
+Widget::Widget(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::Widget)
+{
+    ui->setupUi(this);
+     this->new_window =new MainWindow();
+     connect(ui->pushButton,&QPushButton::clicked,this,[=](){
+         this->hide();                                                  //隐藏widget页面
+         this->new_window->show();                                      //显示五子棋页面
+     });
+     connect(ui->pushButton_2,&QPushButton::clicked,this,&Widget::close);//结束
+}
+
+
