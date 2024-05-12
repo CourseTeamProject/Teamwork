@@ -165,6 +165,18 @@ void Widget::CheckSignal(QString str)
             mSocket->write(str.toUtf8());
         }
     }
+    else if(str[0]=="G") //认输
+    {
+        IsRound = 0;
+        for (int i = 0; i < listClient.count(); i++)
+        {
+            mSocket = listClient.at(i);
+            mSocket->write(str.toUtf8());
+            Really = 0;
+            //发个大家 下棋回合
+            //mSocket->write(("r"+QString::number(IsRound)).toUtf8());
+        }
+    }
     else if(str[0]=="p")
     {
         IsRound++;
@@ -178,13 +190,37 @@ void Widget::CheckSignal(QString str)
             //mSocket->write(("r"+QString::number(IsRound)).toUtf8());
         }
 
-
-
-
-
-
+    }
+    else if(str[0]=="R")
+    {
+        if(Connect=="+")
+        {
+            Really++;
+            if(Really==2)
+            {
+                IsRound = 1;
+                for (int i = 0; i < listClient.count(); i++)
+                {
+                    mSocket = listClient.at(i);
+                    mSocket->write(("r"+QString::number(IsRound)).toUtf8());
+                }
+            }
+        }
+        if(Connect=="-")
+        {
+            Really--;
+        }
+    }
+    else if(str[0]=="O")//Oover 游戏结束
+    {
+        if(Connect=="over")
+        {
+            IsRound = 0;
+            Really = 0;
+        }
 
     }
+
 }
 
 

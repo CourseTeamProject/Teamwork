@@ -47,5 +47,6 @@ private:
 
     int IsRound = 0;    //第0回合控制双方不能下棋
     int people = 0;     //连接人数
+    int Really = 0;     //准备人数
 };
 #endif // WIDGET_H
