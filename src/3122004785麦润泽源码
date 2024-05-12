@@ -22,8 +22,16 @@ void MainWindow::mousePressEvent(QMouseEvent * e) //鼠标按下事件
     //qDebug()<<"x="<<x<<","<<"x%Rect_Width="<<x%RECT_WIDTH<<",pt.x="<<pt.x();
     //qDebug()<<"y="<<y<<","<<"y%Rect_height="<<x%RECT_HEIGHT<<",pt.y="<<pt.y();
 
-
-    //构造一个棋子,并添加到已下棋子容器中
+ //如果已存在棋子，就什么也不做
+    for (int i = 0; i<mPlayedChess.size(); i++) //遍历已下棋子的座标
+    {
+        SignalChess signalchess = mPlayedChess[i];
+        if (signalchess.mChessPossition == pt) //判定是否已存在棋子,若是,则放弃本次鼠标事件
+        {
+            return;
+        }
+    }
+    //不存在棋子，构造一个棋子,并添加到已下棋子容器中
     SignalChess signalchess(pt,mIsBlackTurn);
     mPlayedChess.append(signalchess);
  //统计4个方向是否五子连
@@ -94,4 +102,32 @@ Widget::Widget(QWidget *parent)
      connect(ui->pushButton_2,&QPushButton::clicked,this,&Widget::close);//结束
 }
 
+//补充widget的头文件widget.h
+
+
+#ifndef WIDGET_H
+#define WIDGET_H
+
+#include <QWidget>
+#include "mainwindow.h"
+//五子棋界面为mainwindow界面，故在widget.h中包含这个头文件
+
+QT_BEGIN_NAMESPACE
+namespace Ui { class Widget; }
+QT_END_NAMESPACE
+
+class Widget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    Widget(QWidget *parent = nullptr);
+    ~Widget();
+
+private:
+    Ui::Widget *ui;
+    MainWindow *new_window;
+//在private处添加mainwindow指针变量new_window
+};
+#endif // WIDGET_H
 
