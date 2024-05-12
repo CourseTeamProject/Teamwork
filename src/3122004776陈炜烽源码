@@ -74,3 +74,103 @@ void MainWindow::DeclareDraw()
     QMessageBox::information(NULL, "GAME OVER", "和局", QMessageBox::Yes, QMessageBox::Yes);
     mPlayedChess.clear();
 }
+#5月11号
+#完善代码和注释
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)  //调用基类（QMainWindow）的构造函数，并为成员变量ui分配内存。
+{
+    ui->setupUi(this);
+    // 设置窗口大小，并固定
+    resize((CHESS_COLUMES + 2) * RECT_WIDTH, (CHESS_ROWS + 2) * RECT_HEIGHT);
+    setMaximumSize((CHESS_COLUMES + 2) * RECT_WIDTH, (CHESS_ROWS + 2) * RECT_HEIGHT);
+    setMinimumSize((CHESS_COLUMES + 2) * RECT_WIDTH, (CHESS_ROWS + 2) * RECT_HEIGHT);
+    // 黑子先下
+    mIsBlackTurn = true;
+
+    // 添加音乐播放
+    musicList = new QMediaPlaylist(this);  // 添加音乐列表
+    musicList->addMedia(QUrl("qrc:/music.wav")); // 添加音乐列表
+    QMediaPlayer *player = new QMediaPlayer(this);
+    player->setPlaylist(musicList);  // 设置音乐列表
+    player->setVolume(10); // 设置音量（可选）
+
+    // 播放音乐
+    player->play();
+    musicList->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);  // 循环播放
+    // 这样就可以单首音乐循环播放
+
+    // 产生工具栏按扭
+    QAction *action_L = new QAction(tr("悔棋(&L)"), this); // 创建悔棋动作
+    QAction *action_S = new QAction(tr("结束(&S)"), this); // 创建结束游戏动作
+    QAction *action_T = new QAction(tr("和棋(&T)"), this); // 添加和棋按钮
+    // 将按键与对应的槽函数连接
+    connect(action_L, &QAction::triggered, this, &MainWindow::RepentanceGame);
+    connect(action_S, &QAction::triggered, this, &MainWindow::StopGame);
+    connect(action_T, &QAction::triggered, this, &MainWindow::DeclareDraw);
+    // 将和棋按钮添加到工具栏
+    ui->toolBar->addAction(action_L);
+    ui->toolBar->addAction(action_S);
+    ui->toolBar->addAction(action_T);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;// 删除用户界面对象
+    delete musicList;  // 释放音乐列表对象
+}
+// 判断是否和棋
+        if (IsDraw())
+        {
+            DeclareDraw();
+        }
+void MainWindow::StopGame() //停止棋局
+{
+    // 弹出确认对话框
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Confirm Stop Game", "你确定要结束对局吗?",
+                                  QMessageBox::Yes|QMessageBox::No);
+    // 根据用户的选择进行处理
+    if (reply == QMessageBox::Yes) {
+        mPlayedChess.clear();  //清除已下棋子的容器
+    } else {
+        // 用户选择不结束对局，不进行任何操作
+    }
+}
+
+void MainWindow::RepentanceGame() //悔棋
+{
+    // 弹出确认对话框
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Confirm Repentance", "你确定要悔棋吗?",
+                                  QMessageBox::Yes|QMessageBox::No);
+    // 根据用户的选择进行处理
+    if (reply == QMessageBox::Yes) {
+        if (!mPlayedChess.empty())
+        {
+            mPlayedChess.pop_back(); //移除最后一个棋子
+            mIsBlackTurn = !mIsBlackTurn; //变回上一个该下的棋子
+        }
+    } else {
+        // 用户选择不悔棋，不进行任何操作
+    }
+}
+
+bool MainWindow::IsDraw() const
+{
+    // 判断是否还有空位置可下
+    if (mPlayedChess.size() >= (CHESS_COLUMES+1) * (CHESS_ROWS+1))
+        return true;
+
+    // TODO: 还可以添加其他判断和棋的条件，如局面重复等
+    // 这里只实现了棋盘满格的情况判断
+
+    return false;
+}
+
+void MainWindow::DeclareDraw()
+{
+    // 弹出消息框宣布和局
+    QMessageBox::information(NULL, "GAME OVER", "和局", QMessageBox::Yes, QMessageBox::Yes);
+    mPlayedChess.clear(); // 清空已下棋子的容器
+}
