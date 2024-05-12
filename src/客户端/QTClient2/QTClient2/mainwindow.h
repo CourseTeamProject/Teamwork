@@ -40,6 +40,8 @@ private:
 
     int CountNearChess(SignalChess sigalChess,QPoint ptDirection);    //统计某个方向(共8个方向)上的相同颜色的棋子个数，用QPoint表示统计方向，如(1,1)表示右下方,（-1,0）表示向左
 
+    void GameOver();    //游戏结束要做的操作
+    void GameBeginnig();    //游戏开始要做的操作
 
     QTcpSocket *mSocket;//网络通信对象
 
@@ -50,6 +52,12 @@ private slots:
 
     void on_nowBtn_clicked();
 
+    void on_getLoseBtn_clicked();
+
+    void on_noReallyBtn_clicked();
+
+    void on_getReallyBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
     QVector<SignalChess> mSignalChess;//已下的棋子座标容器
@@ -58,6 +66,7 @@ private:
     bool mIsBlackTurn;    //当前该黑棋下 单回合下棋
     int IsRound = 0;    //回合数
     bool ChessYN = false; //是否已经赋值
+
 
 };
 #endif // MAINWINDOW_H

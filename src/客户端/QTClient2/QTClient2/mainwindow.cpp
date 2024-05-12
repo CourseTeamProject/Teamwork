@@ -23,6 +23,13 @@ MainWindow::MainWindow(QWidget *parent)
     //黑子先下
     mIsBlackTurn = true;
 
+    //准备按钮初始化
+    ui->getReallyBtn->setEnabled(true);//准备按钮可按
+    ui->noReallyBtn->setDisabled(true);//取消不可以按
+
+    //认输按钮初始化
+    ui->getLoseBtn->setDisabled(true);//认输不可按
+
 
     mSocket = new QTcpSocket;
 
@@ -33,6 +40,9 @@ MainWindow::MainWindow(QWidget *parent)
         CheckSignal(str);
 
     });
+
+
+
 
 }
 
@@ -227,13 +237,14 @@ void MainWindow::mousePressEvent(QMouseEvent * e) //鼠标按下事件
          (nUp + nDown) >= 4 ||
          (nRightUp + nLeftDown) >= 4 )
     {
-
+        //自己胜利
         QString str = mIsBlackTurn?"黑棋获胜！":"白棋获胜！";
         QMessageBox::information(NULL,  "GAME OVER",str, QMessageBox::Yes , QMessageBox::Yes);
 
         (mIsBlackTurn)?ui->textShow->append("游戏结束,黑棋获胜。"):ui->textShow->append("游戏结束,白棋获胜。");
         mPlayedChess.clear();
         IsRound = 0;
+        GameOver();
         //NewGame();
         return;
     }
@@ -258,6 +269,20 @@ int MainWindow::CountNearChess(SignalChess signalchess,QPoint ptDirection)//统�
     }
     return nCount; //返回相连棋子个数
 }
+
+void MainWindow::GameOver()    //游戏结束要做的按钮设置操作
+{
+    ui->getLoseBtn->setDisabled(true);//认输按钮不可以按
+    ui->getReallyBtn->setEnabled(true);//准备按钮可按
+    ui->noReallyBtn->setDisabled(true);//取消不可以按
+}
+void MainWindow::GameBeginnig()    //游戏开始要做的按钮设置操作
+{
+    ui->getLoseBtn->setEnabled(true);//认输按钮可以按
+    ui->getReallyBtn->setDisabled(true);//准备按钮不可按
+    ui->noReallyBtn->setDisabled(true);//取消不可以按
+}
+
 
 
 void MainWindow::on_ConnectBtn_clicked()//连接服务器
@@ -310,6 +335,7 @@ void MainWindow::CheckSignal(QString str)
         IsRound = Connect.toInt();
         if(IsRound==1)
         {
+            GameBeginnig();
             ui->textShow->append("游戏开始！");
             if(mIsBlackTurn)
             {
@@ -320,6 +346,30 @@ void MainWindow::CheckSignal(QString str)
                 ui->textShow->append("您是白棋");
             }
 
+        }
+    }
+    else if(str[0]=="G")
+    {
+        if(Connect=="over")
+        {
+            //避免重复结算
+            if(IsRound==0)
+            {
+                return;
+            }
+
+            //自己胜利
+            QString str = mIsBlackTurn?"黑棋获胜！":"白棋获胜！";
+            QMessageBox::information(NULL,  "GAME OVER",str, QMessageBox::Yes , QMessageBox::Yes);
+
+            (mIsBlackTurn)?ui->textShow->append("游戏结束,黑棋获胜。"):ui->textShow->append("游戏结束,白棋获胜。");
+            mPlayedChess.clear();
+            IsRound = 0;
+            GameOver();
+
+            //NewGame();
+            mSocket->write("Oover");
+            return;
         }
     }
     else if(str[0]=="p")
@@ -372,6 +422,10 @@ void MainWindow::CheckSignal(QString str)
             mPlayedChess.clear();
             IsRound = 0;
             //NewGame();
+            mSocket->write("Oover");
+
+            GameOver();
+
             return;
         }
         ui->textShow->append("现在是第"+QString::number(IsRound)+"回合，现在轮到您下棋！");
@@ -401,4 +455,40 @@ void MainWindow::on_nowBtn_clicked()
     }
     ui->textShow->append("当前回合:");
     ui->textShow->append(QString::number(IsRound));
+}
+
+void MainWindow::on_getLoseBtn_clicked()        //认输
+{
+    QMessageBox asklose(QMessageBox::Question,QString(tr("认输")),QString(tr("你确定要认输吗？")),QMessageBox::Yes|QMessageBox::No);
+    asklose.setButtonText(QMessageBox::Yes,QString(tr("是")));  //方式1
+    asklose.button(QMessageBox::No)->setText(tr("否"));    //方式2
+    int Result = asklose.exec();
+    if(Result == QMessageBox::Yes)
+    {
+
+        QString str = (!mIsBlackTurn)?"黑棋获胜！":"白棋获胜！";
+        QMessageBox::information(NULL,  "GAME OVER",str, QMessageBox::Yes , QMessageBox::Yes);
+        (!mIsBlackTurn)?ui->textShow->append("游戏结束,黑棋获胜。"):ui->textShow->append("游戏结束,白棋获胜。");
+        mPlayedChess.clear();
+        IsRound = 0;
+
+        GameOver();
+        //发送认输信号
+        mSocket->write("Gover");
+    }
+
+}
+
+void MainWindow::on_noReallyBtn_clicked()//取消准备
+{
+    ui->getReallyBtn->setEnabled(true);//准备按钮可按
+    ui->noReallyBtn->setDisabled(true);//取消不可以按
+    mSocket->write("R-");   //Really-
+}
+
+void MainWindow::on_getReallyBtn_clicked()//准备
+{
+    ui->getReallyBtn->setDisabled(true);//准备按钮不可按
+    ui->noReallyBtn->setEnabled(true);//取消准备可以按
+    mSocket->write("R+");   //Really+
 }

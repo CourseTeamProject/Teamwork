@@ -43,6 +43,9 @@ public:
     QLineEdit *messageEdit;
     QPushButton *sendBtn;
     QPushButton *nowBtn;
+    QPushButton *getLoseBtn;
+    QPushButton *getReallyBtn;
+    QPushButton *noReallyBtn;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -114,6 +117,15 @@ public:
         nowBtn = new QPushButton(centralwidget);
         nowBtn->setObjectName(QString::fromUtf8("nowBtn"));
         nowBtn->setGeometry(QRect(900, 640, 112, 34));
+        getLoseBtn = new QPushButton(centralwidget);
+        getLoseBtn->setObjectName(QString::fromUtf8("getLoseBtn"));
+        getLoseBtn->setGeometry(QRect(900, 690, 112, 34));
+        getReallyBtn = new QPushButton(centralwidget);
+        getReallyBtn->setObjectName(QString::fromUtf8("getReallyBtn"));
+        getReallyBtn->setGeometry(QRect(1040, 690, 112, 34));
+        noReallyBtn = new QPushButton(centralwidget);
+        noReallyBtn->setObjectName(QString::fromUtf8("noReallyBtn"));
+        noReallyBtn->setGeometry(QRect(1170, 690, 112, 34));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
@@ -136,6 +148,9 @@ public:
         label_2->setText(QCoreApplication::translate("MainWindow", "\347\253\257\345\217\243\345\217\267\357\274\232", nullptr));
         sendBtn->setText(QCoreApplication::translate("MainWindow", "\345\217\221\351\200\201", nullptr));
         nowBtn->setText(QCoreApplication::translate("MainWindow", "\346\243\200\346\237\245\347\212\266\346\200\201", nullptr));
+        getLoseBtn->setText(QCoreApplication::translate("MainWindow", "\350\256\244\350\276\223", nullptr));
+        getReallyBtn->setText(QCoreApplication::translate("MainWindow", "\345\207\206\345\244\207", nullptr));
+        noReallyBtn->setText(QCoreApplication::translate("MainWindow", "\345\217\226\346\266\210\345\207\206\345\244\207", nullptr));
     } // retranslateUi
 
 };
