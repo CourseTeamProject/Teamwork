@@ -131,3 +131,568 @@ private:
 };
 #endif // WIDGET_H
 
+#5月12号
+#整合代码
+#mainwindow.h
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+#define CHESS_ROWS        15  //棋盘水平方向格子数
+#define CHESS_COLUMES    15  //棋盘垂直方向格子数
+#define RECT_WIDTH        50  //每个格子的宽
+#define RECT_HEIGHT        50  //每个格式的高
+#include <QMainWindow>
+#include "signalchess.h"
+#include <QPoint>
+#include <QEvent>
+#include <QPainter>
+#include <QVector>
+#include <QMediaPlayer>
+#include <QMediaPlaylist>
+
+QT_BEGIN_NAMESPACE
+namespace Ui { class MainWindow; }
+QT_END_NAMESPACE
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+protected:
+    void paintEvent(QPaintEvent *);  //绘图事件
+    void mousePressEvent(QMouseEvent *); //鼠标事件
+private:
+    void DrawChessboard();  //画棋盘
+    void DrawChesses();     //画已下的棋子
+    void DrawChessWithMouse(); //将要下的棋子,跟着鼠标移动
+    void DrawChessAtPoint(QPainter& painter,QPoint& pt);//在pt 位置,以Painter 画棋子
+    int CountNearChess(SignalChess sigalChess,QPoint ptDirection);    //统计某个方向(共8个方向)上的相同颜色的棋子个数，用QPoint表示统计方向，如(1,1)表示右下方,（-1,0）表示向左
+    bool IsDraw() const; // 判断是否和棋的函数
+    void DeclareDraw(); // 声明和棋的函数
+    void StopGame();  //停止当前棋局
+    void RepentanceGame(); //悔棋
+private:
+    QMediaPlaylist *musicList;
+
+private:
+    Ui::MainWindow *ui;
+    QVector<SignalChess> mSignalChess;//已下的棋子座标容器
+    QVector<SignalChess> mPlayedChess;
+
+    bool mIsBlackTurn;    //当前该黑棋下
+};
+
+#endif // MAINWINDOW_H
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+#signalchess.h
+#ifndef SIGNALCHESS_H
+#define SIGNALCHESS_H
+#include <QPoint>
+class SignalChess
+{
+
+public:
+    SignalChess(){};
+    SignalChess(QPoint pt,bool bChessColor);  //位置和颜色为参数的构造函数
+    ~SignalChess(void){};
+
+    bool operator==(const SignalChess &t1)const // "==" SignalChess 类等于的重构函数
+    {
+        return ((mChessPossition == t1.mChessPossition) && (mChessColor == t1.mChessColor));
+    }
+
+    QPoint mChessPossition; //位置座标
+
+    bool mChessColor; //颜色
+
+};
+#endif // SIGNALCHESS_H
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+#widget.h
+#ifndef WIDGET_H
+#define WIDGET_H
+
+#include <QWidget>
+#include "mainwindow.h"
+QT_BEGIN_NAMESPACE
+namespace Ui { class Widget; }
+QT_END_NAMESPACE
+
+class Widget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    Widget(QWidget *parent = nullptr);
+    ~Widget();
+
+private:
+    Ui::Widget *ui;
+    MainWindow *new_window;
+};
+#endif // WIDGET_H
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+#main.cpp
+#include "widget.h"
+
+#include <QApplication>
+
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    Widget w;
+    w.show();
+    return a.exec();
+}
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+#mainwindow.cpp
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include <QMessageBox>
+#include <QRadialGradient>
+#include <QColor>
+#include <QMouseEvent>
+#include <QDebug>
+#include <QAction>
+
+#include <QMediaPlaylist>
+#include <QMediaPlayer> // 添加多媒体模块头文件
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    //设置窗口大小,并固定
+    resize((CHESS_COLUMES + 2)*RECT_WIDTH  ,(CHESS_ROWS + 2)*RECT_HEIGHT);
+    setMaximumSize((CHESS_COLUMES + 2)*RECT_WIDTH  ,(CHESS_ROWS + 2)*RECT_HEIGHT);
+    setMinimumSize((CHESS_COLUMES + 2)*RECT_WIDTH  ,(CHESS_ROWS + 2)*RECT_HEIGHT);
+    //黑子先下
+    mIsBlackTurn = true;
+
+    //添加音乐播放
+     musicList = new QMediaPlaylist(this);  //添加音乐列表
+     musicList->addMedia(QUrl("qrc:/music.wav")) ; //添加音乐列表
+     QMediaPlayer *player = new QMediaPlayer(this);
+     player->setPlaylist(musicList);  //设置音乐列表
+     player->setVolume(10); // 设置音量（可选）
+
+    //播放音乐
+    player->play();
+    musicList->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);  //循环播放
+    //这样就可以单首音乐循环播放
+
+    //产生工具栏按扭
+      QAction *action_L=new QAction(tr("悔棋(&L)"),this);
+      QAction *action_S=new QAction(tr("结束(&S)"),this);
+      QAction *action_T=new QAction(tr("和棋(&T)"),this); // 添加和棋按钮
+      connect(action_L,&QAction::triggered,this,&MainWindow::RepentanceGame);
+      connect(action_S,&QAction::triggered,this,&MainWindow::StopGame);
+      connect(action_T,&QAction::triggered,this,&MainWindow::DeclareDraw); // 将和棋按钮与槽函数连接
+      ui->toolBar->addAction(action_L);
+      ui->toolBar->addAction(action_S);
+      ui->toolBar->addAction(action_T); // 将和棋按钮添加到工具栏
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+    delete musicList;  //释放音乐列表对象
+}
+
+
+
+void MainWindow::paintEvent(QPaintEvent *e)
+{
+    DrawChessboard();        //画棋盘
+    DrawChesses();            //画棋子
+    DrawChessWithMouse();    //画鼠标（当前方的棋子形状）
+
+    update();
+}
+
+void MainWindow::DrawChessboard()
+{
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::HighQualityAntialiasing, true); //渲染类型为高质量抗锯齿
+    painter.setBrush(Qt::darkCyan);//设置填冲颜色
+    painter.setPen(QPen(QColor(Qt::black),2));//设置画笔颜色,线粗,默认为实线
+
+    for(int i = 0;i<CHESS_COLUMES; i++)//遍历每一个座标点,画出每一个矩形.
+    {
+        for (int j = 0; j<CHESS_ROWS; j++)
+        {
+            painter.drawRect( (i+1)*RECT_WIDTH,(j+1)*RECT_HEIGHT,RECT_WIDTH,RECT_HEIGHT);
+        }
+    }
+}
+
+void MainWindow::DrawChesses()
+{
+    QPainter painter(this);
+    painter.setPen(QPen(QColor(Qt::transparent))); //透明黑色,same as QColor(0, 0, 0, 0)
+
+    for (int i = 0; i<mPlayedChess.size(); i++) //遍历每一个已下的棋子
+    {
+        SignalChess signalchess = mPlayedChess[i];
+
+        //每个已下棋子中心点座标和渐变填冲焦点座标
+        QPoint ptcentor((signalchess.mChessPossition.x()+1)*RECT_WIDTH,(signalchess.mChessPossition.y()+1)*RECT_HEIGHT);
+        QPoint ptfocal((signalchess.mChessPossition.x()+1)*RECT_WIDTH,(signalchess.mChessPossition.y()+1)*RECT_HEIGHT);
+        //定义渐变填冲
+        QRadialGradient radialGradient(ptcentor,RECT_WIDTH/3,ptfocal);
+
+        if (signalchess.mChessColor)
+        {
+            //painter.setBrush(Qt::black);
+
+            //如果是黑子,定义黑色渐变
+            radialGradient.setColorAt(0,QColor(0,0,0));
+            radialGradient.setColorAt(1,QColor(0,0,0));
+        }
+        else
+        {
+            //painter.setBrush(Qt::white);
+            //如果是白子,定义白色渐变
+            radialGradient.setColorAt(0,QColor(255,255,255,255));
+            radialGradient.setColorAt(1,QColor(180,180,180,255));
+        }
+
+
+        painter.setBrush(radialGradient);//定义渐变填冲
+
+        DrawChessAtPoint(painter,ptcentor); //以ptcentor 为中心画出棋子
+    }
+}
+
+void MainWindow::DrawChessAtPoint(QPainter& painter,QPoint& pt)  //以pt 为中心画出1/3 棋盘方块宽度为半径的圆
+{
+    //painter.drawRect( (pt.x()+0.5)*RECT_WIDTH,(pt.y()+0.5)*RECT_HEIGHT,RECT_WIDTH,RECT_HEIGHT);
+
+    //QPoint ptCenter((pt.x()+0.5)*RECT_WIDTH,(pt.y()+0.5)*RECT_HEIGHT);
+    painter.drawEllipse(pt,RECT_WIDTH / 3,RECT_HEIGHT / 3);
+}
+
+
+void MainWindow::DrawChessWithMouse() //将要下的棋子,跟着鼠标移动
+{
+    QPainter painter(this);
+    painter.setPen(QPen(QColor(Qt::transparent)));
+
+    if (mIsBlackTurn)
+    {
+        painter.setBrush(Qt::black);
+    }
+    else
+    {
+        painter.setBrush(Qt::white);
+    }
+
+    //mapFromGlobal, 转换座标为相对座标
+    QPoint cPoint(mapFromGlobal(QCursor::pos()));
+    //只有在棋盘区域,才绘制圆跟随鼠标
+    //qDebug()<<"cPoint.x()="<<cPoint.x()/RECT_WIDTH<<"cPoint.y()"<<cPoint.y()/RECT_WIDTH;
+
+    if (! (cPoint.x()/RECT_WIDTH<1 || cPoint.x()/RECT_WIDTH>CHESS_COLUMES || cPoint.y()/RECT_HEIGHT<1 || cPoint.y()/RECT_HEIGHT>CHESS_ROWS))
+
+       painter.drawEllipse(cPoint,RECT_WIDTH / 3,RECT_HEIGHT / 3);
+
+}
+
+void MainWindow::mousePressEvent(QMouseEvent * e) //鼠标按下事件
+{
+    //求鼠标点击处的棋子点pt
+    QPoint pt;
+    int x=e->pos().x() ;
+    int y=e->pos().y();
+    //如果鼠标不是在棋盘区域按下,则放弃此鼠标按压事件
+    if ((x/RECT_WIDTH<1 || x/RECT_WIDTH>CHESS_COLUMES || y/RECT_HEIGHT<1 || y/RECT_HEIGHT>CHESS_ROWS))
+        return;
+
+    //判定鼠标的位置更接近哪一个座标点, 将该座标点作为要下棋子的点
+    if (x%RECT_WIDTH<=RECT_WIDTH/2)
+
+         pt.setX( x / RECT_WIDTH-1);
+    else
+        pt.setX( x / RECT_WIDTH);
+
+    if (y%RECT_HEIGHT<=RECT_HEIGHT/2)
+
+         pt.setY( y / RECT_HEIGHT-1);
+    else
+        pt.setY( y / RECT_HEIGHT);
+
+    //qDebug()<<"x="<<x<<","<<"x%Rect_Width="<<x%RECT_WIDTH<<",pt.x="<<pt.x();
+    //qDebug()<<"y="<<y<<","<<"y%Rect_height="<<x%RECT_HEIGHT<<",pt.y="<<pt.y();
+
+
+    //如果已存在棋子，就什么也不做
+    for (int i = 0; i<mPlayedChess.size(); i++) //遍历已下棋子的座标
+    {
+        SignalChess signalchess = mPlayedChess[i];
+        if (signalchess.mChessPossition == pt) //判定是否已存在棋子,若是,则放弃本次鼠标事件
+        {
+            return;
+        }
+    }
+    //不存在棋子，则构造一个棋子,并添加到已下棋子容器中
+    SignalChess signalchess(pt,mIsBlackTurn);
+    mPlayedChess.append(signalchess);
+    // 检查是否和局
+       if (IsDraw()) {
+           DeclareDraw();
+           return;
+       }
+    //统计4个方向是否五子连
+    int nLeft =            CountNearChess(signalchess,QPoint(-1,0));
+    int nLeftUp =        CountNearChess(signalchess,QPoint(-1,-1));
+    int nUp =            CountNearChess(signalchess,QPoint(0,-1));
+    int nRightUp =        CountNearChess(signalchess,QPoint(1,-1));
+    int nRight =        CountNearChess(signalchess,QPoint(1,0));
+    int nRightDown =    CountNearChess(signalchess,QPoint(1,1));
+    int nDown =            CountNearChess(signalchess,QPoint(0,1));
+    int nLeftDown =        CountNearChess(signalchess,QPoint(-1,1));
+    if ( (nLeft + nRight) >= 4 ||
+         (nLeftUp + nRightDown) >= 4 ||
+         (nUp + nDown) >= 4 ||
+         (nRightUp + nLeftDown) >= 4 )
+    {
+        QString str = mIsBlackTurn?"Black Win":"White Win";
+        QMessageBox::information(NULL,  "GAME OVER",str, QMessageBox::Yes , QMessageBox::Yes);
+        mPlayedChess.clear();
+        //NewGame();
+        return;
+    }
+    //换另一方下棋了
+    mIsBlackTurn = !mIsBlackTurn;
+
+    // 判断是否和棋
+        if (IsDraw())
+        {
+            DeclareDraw();
+        }
+}
+
+int MainWindow::CountNearChess(SignalChess signalchess,QPoint ptDirection)
+{
+    int nCount = 0; //记录相连棋子个数
+    SignalChess item=signalchess;
+    item.mChessPossition += ptDirection;//产生待判定的座标
+
+    while (mPlayedChess.contains(item)) //循环确认待判定的座标,item 和signalchess 只是座标位置不同,颜色相同
+    {
+        nCount++;
+        item.mChessPossition += ptDirection; //产生下一个待判定的座标.
+    }
+    return nCount; //返回相连棋子个数
+}
+
+void MainWindow::StopGame() //停止棋局
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Confirm Stop Game", "你确定要结束对局吗?",
+                                  QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        mPlayedChess.clear();  //清除已下棋子的容器
+    } else {
+        // do nothing
+    }
+}
+
+void MainWindow::RepentanceGame() //悔棋
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Confirm Repentance", "你确定要悔棋吗?",
+                                  QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        if (!mPlayedChess.empty())
+        {
+            mPlayedChess.pop_back(); //移除最后一个棋子
+            mIsBlackTurn = !mIsBlackTurn; //变回上一个该下的棋子
+        }
+    } else {
+        // do nothing
+    }
+}
+
+bool MainWindow::IsDraw() const
+{
+    // 判断是否还有空位置可下
+    if (mPlayedChess.size() >= (CHESS_COLUMES+1) * (CHESS_ROWS+1))
+        return true;
+
+    // TODO: 还可以添加其他判断和棋的条件，如局面重复等
+    // 这里只实现了棋盘满格的情况判断
+
+    return false;
+}
+
+void MainWindow::DeclareDraw()
+{
+    QMessageBox::information(NULL, "GAME OVER", "和局", QMessageBox::Yes, QMessageBox::Yes);
+    mPlayedChess.clear();
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+#signalchess.cpp
+#include "signalchess.h"
+
+SignalChess::SignalChess(QPoint pt,bool bChessColor)
+{
+    mChessPossition = pt;   //初始化mChessPoint  和mChessColor 变量
+    mChessColor = bChessColor;
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+#widget.cpp
+#include "widget.h"
+#include "ui_widget.h"
+
+//widget 页面为开始页面，现提供页面切换功能，后续可加入其他功能模块如登录等
+
+
+Widget::Widget(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::Widget)
+{
+    ui->setupUi(this);
+     this->new_window =new MainWindow();
+     connect(ui->pushButton,&QPushButton::clicked,this,[=](){
+         this->hide();                                                  //隐藏widget页面
+         this->new_window->show();                                      //显示五子棋页面
+     });
+     connect(ui->pushButton_2,&QPushButton::clicked,this,&Widget::close);//结束
+}
+
+Widget::~Widget()
+{
+    delete ui;
+}
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+#mainwindow.ui
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+#widget.ui
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Widget</class>
+ <widget class="QWidget" name="Widget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>346</width>
+    <height>350</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Widget</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="2" column="1">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="2">
+    <widget class="QPushButton" name="pushButton_2">
+     <property name="font">
+      <font>
+       <family>Agency FB</family>
+       <pointsize>18</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>退出</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QPushButton" name="pushButton">
+     <property name="font">
+      <font>
+       <family>Agency FB</family>
+       <pointsize>18</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>开始</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLabel" name="label">
+     <property name="font">
+      <font>
+       <family>Agency FB</family>
+       <pointsize>28</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>五子棋</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+
