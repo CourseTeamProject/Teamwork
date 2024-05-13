@@ -57,6 +57,7 @@ void MainWindow::paintEvent(QPaintEvent *e)
     DrawChessboard();        //画棋盘
     DrawChesses();            //画棋子
     DrawChessWithMouse();    //画鼠标带着一个棋子（当前放的棋子形状）
+    DrawLastChess();        //画上一个下的棋子
     update();
 }
 
@@ -149,6 +150,32 @@ void MainWindow::DrawChessWithMouse() //将要下的棋子,跟着鼠标移动
 
 }
 
+void MainWindow::DrawLastChess()//标记上一个棋子
+{
+    QPainter painter(this);
+    painter.setPen(QPen(QColor(255,110,110),3));//设置画笔颜色,线粗,默认为实线
+    QPoint newChess;
+    newChess.setX((lastChess.x()+1)*RECT_WIDTH);
+    newChess.setY((lastChess.y()+1)*RECT_HEIGHT);
+    if(lastYes) //更新的棋子有效
+    {
+        qDebug() << "yes";
+        painter.drawLine(newChess.x(),newChess.y()-4, newChess.x(),newChess.y()-6);     //上
+        painter.drawLine(newChess.x()-4,newChess.y(), newChess.x()-6,newChess.y());     //左
+        painter.drawLine(newChess.x(),newChess.y()+4, newChess.x(),newChess.y()+6);     //下
+        painter.drawLine(newChess.x()+4,newChess.y(), newChess.x()+6,newChess.y());     //右
+    }
+
+
+
+}
+
+
+
+
+
+
+
 void MainWindow::mousePressEvent(QMouseEvent * e) //鼠标按下事件
 {
     //求鼠标点击处的棋子点pt
@@ -216,6 +243,11 @@ void MainWindow::mousePressEvent(QMouseEvent * e) //鼠标按下事件
     SignalChess signalchess(pt,mIsBlackTurn);
     mPlayedChess.append(signalchess);//添加
 
+    //标记更新的棋子
+    lastYes = true;
+    lastChess.setX(x);
+    lastChess.setY(y);
+
 
     //下棋了 要发送下棋信息
     mSocket->write(("p"+QString::number(pt.x())+","+QString::number(pt.y())).toUtf8());
@@ -272,6 +304,9 @@ int MainWindow::CountNearChess(SignalChess signalchess,QPoint ptDirection)//统�
 
 void MainWindow::GameOver()    //游戏结束要做的按钮设置操作
 {
+    //标记更新的棋子无效
+    lastYes = false;
+
     ui->getLoseBtn->setDisabled(true);//认输按钮不可以按
     ui->getReallyBtn->setEnabled(true);//准备按钮可按
     ui->noReallyBtn->setDisabled(true);//取消不可以按
@@ -384,6 +419,11 @@ void MainWindow::CheckSignal(QString str)
         QPoint pt;
         pt.setX(x);
         pt.setY(y);
+
+        //标记更新的棋子
+        lastYes = true;
+        lastChess.setX(x);
+        lastChess.setY(y);
 
         for (int i = 0; i<mPlayedChess.size(); i++) //遍历已下棋子的座标
         {

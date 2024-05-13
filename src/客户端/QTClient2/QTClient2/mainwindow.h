@@ -38,6 +38,8 @@ private:
 
     void DrawChessAtPoint(QPainter& painter,QPoint& pt);//在pt 位置,以Painter 画棋子
 
+    void DrawLastChess();//标识最近下的一个棋子
+
     int CountNearChess(SignalChess sigalChess,QPoint ptDirection);    //统计某个方向(共8个方向)上的相同颜色的棋子个数，用QPoint表示统计方向，如(1,1)表示右下方,（-1,0）表示向左
 
     void GameOver();    //游戏结束要做的操作
@@ -67,6 +69,7 @@ private:
     int IsRound = 0;    //回合数
     bool ChessYN = false; //是否已经赋值
 
-
+    QPoint lastChess;   //记录上一个棋子
+    bool lastYes = false;   //记录的上一个棋子是否有效
 };
 #endif // MAINWINDOW_H
